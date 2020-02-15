@@ -20,7 +20,7 @@ int train(){
 
     Learner learner=Learner();
     shared_ptr<Gomoku> pgame=make_shared<Gomoku>(n,n_in_row,1);
-    bool use_gpu=torch::cuda::is_available();
+    bool use_gpu=false;//torch::cuda::is_available();
     shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (n,n_in_row,use_gpu,4);
     shared_ptr<MCTS> pMCTS=make_shared<MCTS>(neural_network, 2, 1,50, 1,10*10);
 
@@ -49,7 +49,7 @@ int train(){
         }
 
         //contest
-        bool btest_use_gpu=torch::cuda::is_available();
+        bool btest_use_gpu=false;//torch::cuda::is_available();
         vector<future<bool>> vec;
         for (int i=0;i<=contest_num;++i){
             auto run=std::async(std::launch::async,&Learner::contest,learner,neural_network, n, n_in_row,btest_use_gpu);
