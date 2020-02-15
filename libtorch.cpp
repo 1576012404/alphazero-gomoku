@@ -139,14 +139,18 @@ void NeuralNetwork::infer() {
 
     // set promise value
     for (unsigned int i = 0; i < promises.size(); i++) {
-//        std::cout<<"set_promise"<<i<<std::endl;
+        std::cout<<"set_promise"<<i<<std::endl;
         torch::Tensor p = p_batch[i];
         torch::Tensor v = v_batch[i];
+      cout<<"a"<<endl;
 
         std::vector<double> prob(static_cast<float*>(p.data_ptr()),
                                  static_cast<float*>(p.data_ptr()) + p.size(0));
+      cout<<"b"<<endl;
         std::vector<double> value{v.item<float>()};
+      cout<<"c"<<endl;
         return_type temp{std::move(prob), std::move(value)};
+      cout<<"d"<<endl;
 
         promises[i].set_value(std::move(temp));
     }
