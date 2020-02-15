@@ -135,6 +135,7 @@ void NeuralNetwork::infer() {
   cout<<"after_tie"<<endl;
     p_batch=p_batch.detach().exp();
     v_batch=v_batch.detach();
+  cout<<"after detach"<<endl;
 
     // set promise value
     for (unsigned int i = 0; i < promises.size(); i++) {
@@ -149,7 +150,8 @@ void NeuralNetwork::infer() {
 
         promises[i].set_value(std::move(temp));
     }
-//    std::cout<<"set promises"<<std::endl;
+  
+    std::cout<<"set promises"<<std::endl;
 
 }
 
