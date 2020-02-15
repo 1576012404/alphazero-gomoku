@@ -43,6 +43,7 @@ struct NetImpl : torch::nn::Module {
         cout<<"4"<<endl;
 
         auto v = fc3->forward(x);
+        cout<<"5"<<endl;
 
         return std::make_tuple(p,v);
     }
