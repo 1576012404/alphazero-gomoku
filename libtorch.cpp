@@ -8,16 +8,21 @@ NeuralNetwork::NeuralNetwork( int n,int n_in_row,bool use_gpu,
                              unsigned int batch_size)
         :n(n),
         n_in_row(n_in_row),
-        module(Net(4,256,n,n*n)),//num_layers,int num_channels,int n,int action_size
+        module(Net()),//num_layers,int num_channels,int n,int action_size 4,256,n,n*n
           opt(module->parameters(), torch::optim::AdamOptions(1e-3)),
           use_gpu(use_gpu),
           batch_size(batch_size),
           running(true),
           loop(nullptr) {
-    if (this->use_gpu) {
+
+    if (use_gpu) {
+        cout<<"use_gpu"<<endl;
         // move to CUDA
         this->module->to(at::kCUDA);
     }
+    else{
+        cout<<"use cpu"<<endl;
+    };
 
     // run infer thread
     this->loop = std::make_unique<std::thread>([this] {
@@ -156,54 +161,33 @@ bool NeuralNetwork::load(){
 
 }
 
-void NeuralNetwork:: train(vector<tuple<board_type,vector<double>,int,int,double>> &train_data,int batch_size){
+void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_data,int batch_size){
     static thread_local std::mt19937 generator;
     std::shuffle(std::begin(train_data),std::end(train_data),generator);
 
     int epoch=train_data.size()/batch_size;
     for (int i=0;i<epoch;++i){
+//        cout<<"batch_index:"<<i<<",batch_size"<<batch_size<<endl;
         vector<torch::Tensor> boards;
         vector<torch::Tensor> probs;
         vector<double> values;
         for(int j=0;j<batch_size;++j){
             int index=batch_size*i+j;
-            board_type board;
-            vector<double> prob;
-            int last_move;
-            int cur_player;
+            torch::Tensor board;
+            torch::Tensor prob;
             double value;
-            std::tie(board,prob,last_move,cur_player,value)=train_data[index];
+            std::tie(board,prob,value)=train_data[index];
 
-            //process batch
-            int n=board.size();
-            std::vector<int> board0;
-            for (unsigned int i = 0; i < board.size(); i++) {
-                board0.insert(board0.end(), board[i].begin(), board[i].end());
-            }
-            torch::Tensor temp =
-                    torch::from_blob(board0.data(), {1, 1, n, n}, torch::dtype(torch::kInt32));
-            torch::Tensor state0=(temp==1).toType(torch::kFloat32);
-            torch::Tensor state1=(temp==-1).toType(torch::kFloat32);
-            if (cur_player == -1) {
-                std::swap(state0, state1);
-            }
-            torch::Tensor state2 =
-                    torch::zeros({1, 1, n, n}, torch::dtype(torch::kFloat32));
-            if (last_move != -1) {
-                state2[0][0][last_move / n][last_move % n] = 1;
-            }
-            // torch::Tensor states = torch::cat({state0, state1}, 1);
-            torch::Tensor states = torch::cat({state0, state1, state2}, 1);
-            boards.push_back(states);
-            probs.push_back(torch::from_blob(prob.data(), {1, n*n}, torch::dtype(torch::kFloat32)));
+            boards.push_back(std::move(board));
+            probs.push_back(std::move(prob));
             values.push_back(value);
         }
+
         torch::Device device(torch::kCPU);
         if (this->use_gpu){
             device=torch::Device(torch::kCUDA);
 
         }
-
         torch::Tensor boards_tor=torch::cat(boards,0).to(device);
         torch::Tensor probs_tor=torch::cat(probs,0).to(device);
         torch::Tensor values_tor=torch::from_blob(values.data(),{batch_size,1}).to(device);

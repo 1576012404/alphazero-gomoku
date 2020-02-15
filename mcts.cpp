@@ -2,7 +2,7 @@
 #include <cfloat>
 #include <numeric>
 #include <iostream>
-
+#include <ctime>
 #include "mcts.h"
 
 // TreeNode
@@ -319,6 +319,10 @@ void MCTS::simulate(std::shared_ptr<Gomoku> game) {
             // got dozens or hundreds of these messages you should pay attention to
             // your NNet and/or training process.
             std::cout << "All valid moves were masked, do workaround." << std::endl;
+                    for(double i:action_priors){
+            std::cout<<i<<std::endl;
+        }
+            throw ("All valid moves were masked");
 
             sum = std::accumulate(legal_moves.begin(), legal_moves.end(), 0);
             for (unsigned int i = 0; i < action_priors.size(); i++) {

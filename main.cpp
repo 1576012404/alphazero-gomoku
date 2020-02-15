@@ -11,7 +11,7 @@ using namespace std;
 int train(){
     int iter_num=10;
     int batch_size=16;
-    int contest_num=40;
+    int contest_num=4;
     int epoch_num=100;
     int check_interval=2;
     int n=10;
@@ -20,8 +20,9 @@ int train(){
 
     Learner learner=Learner();
     shared_ptr<Gomoku> pgame=make_shared<Gomoku>(n,n_in_row,1);
-    shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (n,n_in_row,false,4);
-    shared_ptr<MCTS> pMCTS=make_shared<MCTS>(neural_network, 8, 1,50, 1,10*10);
+    bool use_gpu=torch::cuda::is_available();
+    shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (n,n_in_row,use_gpu,4);
+    shared_ptr<MCTS> pMCTS=make_shared<MCTS>(neural_network, 2, 1,50, 1,10*10);
 
 
 
@@ -29,11 +30,15 @@ int train(){
     for(int epoch=1;epoch<epoch_num;epoch++){
         cout<<"epoch:"<<epoch<<endl;
 
-        vector<tuple<board_type,vector<double>,int,int,double>> train_examples;
+        vector<std::tuple<torch::Tensor,torch::Tensor,double>> train_examples;
         for(int i=0;i<=iter_num;++i){
+            cout<<"iter_num:"<<i<<endl;
             learner.self_play(1,pMCTS,pgame,train_examples);
         }
+
+        cout<<"start train:"<<epoch<<endl;
         neural_network->train(train_examples,batch_size);
+        cout<<"end train:"<<epoch<<endl;
 
         if (epoch==1){
             neural_network->save();
@@ -44,9 +49,10 @@ int train(){
         }
 
         //contest
+        bool btest_use_gpu=torch::cuda::is_available();
         vector<future<bool>> vec;
         for (int i=0;i<=contest_num;++i){
-            auto run=std::async(std::launch::async,&Learner::contest,learner,neural_network, n, n_in_row);
+            auto run=std::async(std::launch::async,&Learner::contest,learner,neural_network, n, n_in_row,btest_use_gpu);
             vec.push_back(std::move(run));
         }
         int iWin=0;
@@ -55,6 +61,9 @@ int train(){
             if (ans==true) iWin++;
         }
         float win_percent=iWin/contest_num;
+//        float win_percent=0.65;
+
+
         if (win_percent>0.5)
             neural_network->save();
     }

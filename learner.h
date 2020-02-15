@@ -12,8 +12,11 @@ class Learner {
 public:
 
     bool  self_play(int first_color,shared_ptr<MCTS>pMCTS,shared_ptr<Gomoku> pgame,
-                     vector<tuple<board_type,vector<double>,int,int,double>> &train_examples);
+                    vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_examples);
 
-    bool  contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row);
+    bool convert_to_torch(int winner,vector<tuple<board_type,vector<double>,int,int>> &examples,
+                              vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_examples);
+
+    bool  contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,bool use_gpu);
 
 };
