@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <tuple>
+#include <random>
 using namespace std::chrono_literals;
 using namespace std;
 NeuralNetwork::NeuralNetwork( int n,int n_in_row,bool use_gpu,
