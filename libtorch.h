@@ -26,6 +26,7 @@ struct NetImpl : torch::nn::Module {
         register_module("conv2_drop", conv2_drop);
         register_module("fc1", fc1);
         register_module("fc2", fc2);
+        register_module("fc3", fc3);
     }
 
     std::tuple<torch::Tensor,torch::Tensor> forward(torch::Tensor x) {
