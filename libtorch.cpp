@@ -17,9 +17,11 @@ NeuralNetwork::NeuralNetwork( int n,int n_in_row,bool use_gpu,
           loop(nullptr) {
 
     if (use_gpu) {
+        torch::DeviceType device_type=torch::kCUDA;
+        torch::Device device(device_type);
         cout<<"use_gpu"<<endl;
         // move to CUDA
-        this->module->to(at::kCUDA);
+        this->module->to(device);
     }
     else{
         cout<<"use cpu"<<endl;
