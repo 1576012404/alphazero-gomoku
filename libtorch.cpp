@@ -123,6 +123,7 @@ void NeuralNetwork::infer() {
 
     torch::Tensor states_batch=torch::cat(states,0);
     if (this->use_gpu){
+      cout<<"data to gpu"<<endl;
         torch::DeviceType device_type=torch::kCUDA;
         torch::Device device(device_type);
         states_batch=states_batch.to(device);
