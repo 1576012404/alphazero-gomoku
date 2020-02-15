@@ -129,8 +129,10 @@ void NeuralNetwork::infer() {
         states_batch=states_batch.to(device);
     }
     std::tuple<torch::Tensor,torch::Tensor> out=module->forward(states_batch);
+  cout<<"after forward"<<endl;
     torch::Tensor p_batch,v_batch;
     std::tie(p_batch,v_batch)=out;
+  cout<<"after_tie"<<endl;
     p_batch=p_batch.detach().exp();
     v_batch=v_batch.detach();
 
