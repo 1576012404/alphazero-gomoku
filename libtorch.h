@@ -29,14 +29,18 @@ struct NetImpl : torch::nn::Module {
     }
 
     std::tuple<torch::Tensor,torch::Tensor> forward(torch::Tensor x) {
+        cout<<"1"<<endl;
         x = torch::relu(torch::max_pool2d(conv1->forward(x), 2));
         x = torch::relu(
                 torch::max_pool2d(conv2_drop->forward(conv2->forward(x)), 2));
         x = x.view({-1, 20});
+        cout<<"2"<<endl;
         x = torch::relu(fc1->forward(x));
+        cout<<"3"<<endl;
         x = torch::dropout(x, /*p=*/0.5, /*training=*/is_training());
         auto p = fc2->forward(x);
         p=torch::log_softmax(p, /*dim=*/1);
+        cout<<"4"<<endl;
 
         auto v = fc3->forward(x);
 
