@@ -133,8 +133,10 @@ void NeuralNetwork::infer() {
     torch::Tensor p_batch,v_batch;
     std::tie(p_batch,v_batch)=out;
   cout<<"after_tie"<<endl;
-    p_batch=p_batch.detach().exp();
-    v_batch=v_batch.detach();
+        torch::DeviceType device_type=torch::kCPU;
+        torch::Device cpudevice(device_type);
+    p_batch=p_batch.exp().to(cpudevice);
+    v_batch=v_batch.to(cpudevice);
   cout<<"after detach"<<endl;
 
     // set promise value
