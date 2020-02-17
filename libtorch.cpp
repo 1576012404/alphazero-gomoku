@@ -143,6 +143,7 @@ void NeuralNetwork::infer() {
         torch::Tensor p = p_batch[i];
         torch::Tensor v = v_batch[i];
       cout<<"a"<<endl;
+      cout<<p<<endl;
 
         std::vector<double> prob(static_cast<float*>(p.data_ptr()),
                                  static_cast<float*>(p.data_ptr()) + p.size(0));
