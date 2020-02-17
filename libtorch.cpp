@@ -117,7 +117,7 @@ void NeuralNetwork::infer() {
     if (states.size() == 0) {
         return;
     }
-    std::cout<<"infer_block:"<<states.size()<<",sim_batch_size::"<<this->sim_batch_size<<std::endl;
+//    std::cout<<"infer_block:"<<states.size()<<",sim_batch_size::"<<this->sim_batch_size<<std::endl;
 
     // infer
 

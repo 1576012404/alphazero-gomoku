@@ -16,15 +16,15 @@ bool Learner::self_play(int first_color,shared_ptr<MCTS>pMCTS,shared_ptr<Gomoku>
     while(true){
         episode_step+=1;
         vector<double> model_probs;
-        time_t t1,t2;
-        time(&t1);
+//        time_t t1,t2;
+//        time(&t1);
 
         if (episode_step<=this->num_exporle)//exporle
             model_probs=pMCTS->get_action_probs(pgame,1);
         else
             model_probs=pMCTS->get_action_probs(pgame,0);
-        time(&t2);
-        cout<<"cost_time:"<<t2-t1<<endl;
+//        time(&t2);
+//        cout<<"cost_time:"<<t2-t1<<endl;
 
 
 
