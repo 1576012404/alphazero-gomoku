@@ -19,12 +19,12 @@ NeuralNetwork::NeuralNetwork( int n,int n_in_row,bool use_gpu,
     if (use_gpu) {
         torch::DeviceType device_type=torch::kCUDA;
         torch::Device device(device_type);
-        cout<<"use_gpu"<<endl;
+//        cout<<"use_gpu"<<endl;
         // move to CUDA
         this->module->to(device);
     }
     else{
-        cout<<"use cpu"<<endl;
+//        cout<<"use cpu"<<endl;
     };
 
     // run infer thread
@@ -123,42 +123,34 @@ void NeuralNetwork::infer() {
 
     torch::Tensor states_batch=torch::cat(states,0);
     if (this->use_gpu){
-      cout<<"data to gpu"<<endl;
+//        cout<<"data to gpu"<<endl;
         torch::DeviceType device_type=torch::kCUDA;
         torch::Device device(device_type);
         states_batch=states_batch.to(device);
     }
     std::tuple<torch::Tensor,torch::Tensor> out=module->forward(states_batch);
-  cout<<"after forward"<<endl;
     torch::Tensor p_batch,v_batch;
     std::tie(p_batch,v_batch)=out;
-  cout<<"after_tie"<<endl;
-        torch::DeviceType device_type=torch::kCPU;
-        torch::Device cpudevice(device_type);
+    torch::DeviceType device_type=torch::kCPU;
+    torch::Device cpudevice(device_type);
     p_batch=p_batch.exp().to(cpudevice);
     v_batch=v_batch.to(cpudevice);
-  cout<<"after detach"<<endl;
+
 
     // set promise value
     for (unsigned int i = 0; i < promises.size(); i++) {
-        std::cout<<"set_promise"<<i<<std::endl;
+//        std::cout<<"set_promise"<<i<<std::endl;
         torch::Tensor p = p_batch[i];
         torch::Tensor v = v_batch[i];
-      cout<<"a"<<endl;
-      cout<<p<<endl;
 
         std::vector<double> prob(static_cast<float*>(p.data_ptr()),
                                  static_cast<float*>(p.data_ptr()) + p.size(0));
-      cout<<"b"<<endl;
         std::vector<double> value{v.item<float>()};
-      cout<<"c"<<endl;
         return_type temp{std::move(prob), std::move(value)};
-      cout<<"d"<<endl;
 
         promises[i].set_value(std::move(temp));
     }
-  
-    std::cout<<"set promises"<<std::endl;
+//    std::cout<<"set promises"<<std::endl;
 
 }
 

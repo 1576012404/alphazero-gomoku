@@ -49,7 +49,7 @@ int train(){
         }
 
         //contest
-        bool btest_use_gpu=false;//torch::cuda::is_available();
+        bool btest_use_gpu=torch::cuda::is_available();
         vector<future<bool>> vec;
         for (int i=0;i<=contest_num;++i){
             auto run=std::async(std::launch::async,&Learner::contest,learner,neural_network, n, n_in_row,btest_use_gpu);
