@@ -10,7 +10,8 @@ using namespace std;
 
 int train(){
     int iter_num=10;
-    int batch_size=16;
+    int train_batch_size=128;
+    unsigned int sim_batch_size=16;
     int contest_num=4;
     int epoch_num=100;
     int check_interval=2;
@@ -21,7 +22,7 @@ int train(){
     Learner learner=Learner();
     shared_ptr<Gomoku> pgame=make_shared<Gomoku>(n,n_in_row,1);
     bool use_gpu=torch::cuda::is_available();
-    shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (n,n_in_row,use_gpu,4);
+    shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (n,n_in_row,use_gpu,sim_batch_size);
     shared_ptr<MCTS> pMCTS=make_shared<MCTS>(neural_network, 2, 1,50, 1,10*10);
 
 
@@ -37,7 +38,7 @@ int train(){
         }
 
         cout<<"start train:"<<epoch<<endl;
-        neural_network->train(train_examples,batch_size);
+        neural_network->train(train_examples,train_batch_size);
         cout<<"end train:"<<epoch<<endl;
 
         if (epoch==1){

@@ -6,13 +6,13 @@
 using namespace std::chrono_literals;
 using namespace std;
 NeuralNetwork::NeuralNetwork( int n,int n_in_row,bool use_gpu,
-                             unsigned int batch_size)
+                             unsigned int sim_batch_size)
         :n(n),
         n_in_row(n_in_row),
-        module(Net()),//num_layers,int num_channels,int n,int action_size 4,256,n,n*n
+        module(Net(4,256,n,n*n)),//num_layers,int num_channels,int n,int action_size 4,256,n,n*n  Net()
           opt(module->parameters(), torch::optim::AdamOptions(1e-3)),
           use_gpu(use_gpu),
-          batch_size(batch_size),
+         sim_batch_size(sim_batch_size),
           running(true),
           loop(nullptr) {
 
@@ -93,7 +93,7 @@ void NeuralNetwork::infer() {
     std::vector<std::promise<return_type>> promises;
 
     bool timeout = false;
-    while (states.size() < this->batch_size && !timeout) {
+    while (states.size() < this->sim_batch_size && !timeout) {
         // pop task
         {
             std::unique_lock<std::mutex> lock(this->lock);
@@ -117,7 +117,7 @@ void NeuralNetwork::infer() {
     if (states.size() == 0) {
         return;
     }
-//    std::cout<<"infer_block:"<<states.size()<<"batch_size:"<<this->batch_size<<std::endl;
+    std::cout<<"infer_block:"<<states.size()<<",sim_batch_size::"<<this->sim_batch_size<<std::endl;
 
     // infer
 
