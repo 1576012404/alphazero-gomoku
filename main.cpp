@@ -17,7 +17,7 @@ int train(){
     int check_interval=2;
     int n=10;
     int n_in_row=4;
-    unsigned int num_mcts_sims=50;
+    unsigned int num_mcts_sims=1000;
     double c_puct=1;
     double c_virtual_loss=1;
     unsigned int thread_num=8;

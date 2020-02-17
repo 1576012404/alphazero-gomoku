@@ -1,8 +1,9 @@
 #include <math.h>
 #include <iostream>
-
+#include <random>
 #include "gomoku.h"
 
+static thread_local std::mt19937 generator;
 Gomoku::Gomoku(unsigned int n, unsigned int n_in_row, int first_color)
         : n(n), n_in_row(n_in_row), cur_color(first_color), last_move(-1) {
     this->board = std::vector<std::vector<int>>(n, std::vector<int>(n, 0));
@@ -37,7 +38,19 @@ bool Gomoku::has_legal_moves() {
 }
 
 bool Gomoku::reset_game(){
+    std::uniform_int_distribution<int> randint(0,1);
+    int rand_out=randint(generator);
+    int first_color;
+    if (rand_out==0)
+        first_color=-1;
+    else
+        first_color=1;
+
     this->board = std::vector<std::vector<int>>(n, std::vector<int>(n, 0));
+
+
+    this->cur_color=first_color;
+    this->last_move=-1;
     return true;
 }
 
