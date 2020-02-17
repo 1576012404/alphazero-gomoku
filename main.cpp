@@ -9,7 +9,7 @@ using namespace std;
 
 
 int train(){
-    int iter_num=10;
+    int iter_num=5;
     int train_batch_size=128;
     unsigned int sim_batch_size=16;
     int contest_num=2;
