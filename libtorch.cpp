@@ -210,6 +210,7 @@ void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>
         torch::Tensor policy_loss = -torch::mean(torch::sum(probs_tor * log_ps, 1));
         torch::Tensor toal_loss=value_loss+policy_loss;
         toal_loss.backward();
+        cout<<"loss:"<<toal_loss<<endl;
         this->opt.step();
     }
 

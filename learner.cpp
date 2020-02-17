@@ -132,7 +132,10 @@ bool Learner::convert_to_torch(int winner,vector<tuple<board_type,vector<double>
 
 
 
-bool Learner::contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,bool use_gpu) {//-1 for cur 1 for best
+bool Learner::contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,bool use_gpu,unsigned int num_mcts_sims,
+                      double c_puct,
+                      double c_virtual_loss,
+                      unsigned int thread_num) {//-1 for cur 1 for best
     uniform_int_distribution<int> randint(0,1);
     int rand_out=randint(generator);
     int first_color;
@@ -146,8 +149,8 @@ bool Learner::contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,b
 
     shared_ptr<NeuralNetwork> best_network = make_shared<NeuralNetwork>(n,n_in_row,use_gpu, 4);
     best_network->load();
-    shared_ptr<MCTS> cur_MCTS = make_shared<MCTS>(cur_network, 8, 1, 50, 1, 10 * 10);
-    shared_ptr<MCTS> best_MCTS = make_shared<MCTS>(best_network, 8, 1, 50, 1, 10 * 10);
+    shared_ptr<MCTS> cur_MCTS = make_shared<MCTS>(cur_network, thread_num, c_puct, num_mcts_sims, c_virtual_loss, n * n);
+    shared_ptr<MCTS> best_MCTS = make_shared<MCTS>(best_network, thread_num, c_puct, num_mcts_sims, c_virtual_loss, n * n);
 
     int players[2] = {first_color, -first_color};
     int cur_index = 0;

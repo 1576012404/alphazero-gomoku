@@ -13,10 +13,14 @@ int train(){
     int train_batch_size=128;
     unsigned int sim_batch_size=16;
     int contest_num=4;
-    int epoch_num=100;
+    int epoch_num=100000;
     int check_interval=2;
     int n=10;
     int n_in_row=4;
+    unsigned int num_mcts_sims=50;
+    double c_puct=1;
+    double c_virtual_loss=1;
+    unsigned int thread_num=8;
     bool use_gpu=torch::cuda::is_available();
     //network param
 
@@ -24,8 +28,7 @@ int train(){
     shared_ptr<Gomoku> pgame=make_shared<Gomoku>(n,n_in_row,1);
 
     shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (n,n_in_row,use_gpu,sim_batch_size);
-    shared_ptr<MCTS> pMCTS=make_shared<MCTS>(neural_network, 2, 1,50, 1,10*10);
-
+    shared_ptr<MCTS> pMCTS=make_shared<MCTS>(neural_network, thread_num, c_puct,num_mcts_sims, c_virtual_loss,n*n);
 
 
     for(int epoch=1;epoch<epoch_num;epoch++){
@@ -53,7 +56,8 @@ int train(){
         bool btest_use_gpu=torch::cuda::is_available();
         vector<future<bool>> vec;
         for (int i=0;i<=contest_num;++i){
-            auto run=std::async(std::launch::async,&Learner::contest,learner,neural_network, n, n_in_row,btest_use_gpu);
+            auto run=std::async(std::launch::async,&Learner::contest,learner,neural_network, n, n_in_row,btest_use_gpu, num_mcts_sims,
+             c_puct,c_virtual_loss,thread_num);
             vec.push_back(std::move(run));
         }
         int iWin=0;
@@ -66,7 +70,10 @@ int train(){
 
 
         if (win_percent>0.5)
+        {
+            cout<<"save model..."<<endl;
             neural_network->save();
+        }
     }
     std::cout << "Hello, World!" << std::endl;
     return 0;

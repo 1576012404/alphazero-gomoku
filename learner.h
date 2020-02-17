@@ -17,6 +17,9 @@ public:
     bool convert_to_torch(int winner,vector<tuple<board_type,vector<double>,int,int>> &examples,
                               vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_examples);
 
-    bool  contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,bool use_gpu);
+    bool  contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,bool use_gpu,unsigned int num_mcts_sims,
+        double c_puct,
+        double c_virtual_loss,
+        unsigned int thread_num);
 
 };
