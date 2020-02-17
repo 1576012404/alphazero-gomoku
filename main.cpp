@@ -17,14 +17,14 @@ int train(){
     int check_interval=2;
     int n=10;
     int n_in_row=4;
+    bool use_gpu=torch::cuda::is_available();
     //network param
 
     Learner learner=Learner();
     shared_ptr<Gomoku> pgame=make_shared<Gomoku>(n,n_in_row,1);
-    bool use_gpu=torch::cuda::is_available();
+
     shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (n,n_in_row,use_gpu,sim_batch_size);
     shared_ptr<MCTS> pMCTS=make_shared<MCTS>(neural_network, 2, 1,50, 1,10*10);
-
 
 
 

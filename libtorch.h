@@ -92,20 +92,14 @@ struct ResidualBlock:torch::nn::Module{
 
     torch::Tensor forward(torch::Tensor x) {
         torch::Tensor residual=x;
-        cout<<"block1"<<endl;
         x = torch::relu(bn1(conv1(x)));
-        cout<<"block2"<<endl;
         x = bn2(conv2(x));
-        cout<<"block3"<<endl;
         if (downsample){
             residual=downsample_bn(downsample_conv(x));
 
         }
-
-        cout<<"block4"<<endl;
         x=x+residual;
         x=torch::relu(x);
-        cout<<"block5"<<endl;
         return x;
     }
 
@@ -141,30 +135,22 @@ struct NetImpl : torch::nn::Module {
 
     std::tuple<torch::Tensor,torch::Tensor> forward(torch::Tensor x) {
 //    torch::Tensor forward(torch::Tensor x) {
-        cout<<"for1"<<endl;
+
         torch::Tensor out = res_list->forward(x);
-        cout<<"for2"<<endl;
         torch::Tensor p=p_conv(out);
         p=p_bn(p);
-        cout<<"for3"<<endl;
         p=torch::relu(p);
-        cout<<"for4"<<endl;
         p=p_fc(p.view({p.size(0),-1}));
-        cout<<"for5"<<endl;
         p=torch::log_softmax(p,1);
-        cout<<"for6"<<endl;
 
 
         torch::Tensor v=v_conv(out);
         v=v_bn(v);
-        cout<<"for7"<<endl;
         v=torch::relu(v);
 
         v=v_fc1(v.view({v.size(0),-1}));
-        cout<<"for8"<<endl;
         v=torch::relu(v);
         v=v_fc2(v);
-        cout<<"for9"<<endl;
         v=torch::tanh(v);
 //        return p;
 
