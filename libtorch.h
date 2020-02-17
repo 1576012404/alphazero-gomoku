@@ -128,7 +128,7 @@ struct NetImpl : torch::nn::Module {
         for(int i=0;i<num_layers;++i)
             res_list->push_back(ResidualBlock(num_channels,num_channels));
 
-
+        register_module("res_list", res_list);
         register_module("p_conv", p_conv);
         register_module("p_bn", p_bn);
         register_module("p_fc", p_fc);
