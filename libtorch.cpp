@@ -217,7 +217,7 @@ void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>
 
         this->opt.step();
     }
-    cout<<"value_loss:"<<temp1<<"policy_loss:"<<temp2<<<<"prob:"<<temp3<<"log_p:"<<temp4<<endl;
+    cout<<"value_loss:"<<temp1<<"policy_loss:"<<temp2<<"prob:"<<temp3<<"log_p:"<<temp4<<endl;
 
 
 
