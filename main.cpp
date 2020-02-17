@@ -12,12 +12,12 @@ int train(){
     int iter_num=10;
     int train_batch_size=128;
     unsigned int sim_batch_size=16;
-    int contest_num=4;
+    int contest_num=2;
     int epoch_num=100000;
     int check_interval=2;
     int n=10;
     int n_in_row=4;
-    unsigned int num_mcts_sims=1000;
+    unsigned int num_mcts_sims=50;
     double c_puct=1;
     double c_virtual_loss=1;
     unsigned int thread_num=8;
