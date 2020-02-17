@@ -171,7 +171,7 @@ bool NeuralNetwork::load(){
 void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_data,int batch_size){
     static thread_local std::mt19937 generator;
     std::shuffle(std::begin(train_data),std::end(train_data),generator);
-    auto temp1,temp2;
+    torch::Tensor temp1,temp2;
     int epoch=train_data.size()/batch_size;
     for (int i=0;i<epoch;++i){
 //        cout<<"batch_index:"<<i<<",batch_size"<<batch_size<<endl;
@@ -216,6 +216,7 @@ void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>
         this->opt.step();
     }
     cout<<"value_loss:"<<temp1<<"policy_loss:"<<temp2<<endl;
+
 
 
 }
