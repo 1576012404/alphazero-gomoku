@@ -169,17 +169,17 @@ TORCH_MODULE(Net);
 
 class NeuralNetwork {
 public:
-    using return_type = std::vector<std::vector<double>>;
+    using return_type = std::vector<std::vector<float>>;
 
     NeuralNetwork( int n,int n_in_row,bool use_gpu, unsigned int sim_batch_size);
     ~NeuralNetwork();
 
     std::future<return_type> commit(Gomoku* gomoku);  // commit task to queue
     void set_batch_size(unsigned int batch_size) {    // set batch_size
-        this->sim_batch_size = batch_size;void train(std::vector<tuple<board_type,std::vector<double>,int,int,int>> train_data,int batch_size);//train
+        this->sim_batch_size = batch_size;void train(std::vector<tuple<board_type,std::vector<float>,int,int,int>> train_data,int batch_size);//train
     };
 
-    void train(vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_examples,int batch_size);//train
+    void train(vector<std::tuple<torch::Tensor,torch::Tensor,float>> &train_examples,int batch_size);//train
     bool save();
     bool load();
 

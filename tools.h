@@ -11,7 +11,7 @@ using namespace std;
 
 
 static thread_local std::mt19937 generator;
-void dirichlet_random(vector<double> &p,vector<double> &alpha,int alphalen){
+void dirichlet_random(vector<float> &p,vector<float> &alpha,int alphalen){
     float sum=0;
     for(int i=0;i<alphalen;i++){
         gamma_distribution<float> d(alpha[i],1.0);
@@ -26,11 +26,11 @@ void dirichlet_random(vector<double> &p,vector<double> &alpha,int alphalen){
 }
 
 
-int random_choise(vector<double> &a,int len){
-    double sum=std::accumulate(a.begin(),a.end(),0.0);
-    uniform_real_distribution<> value{0.0,sum};
-    double fchoice{value(generator)};
-    double total=0;
+int random_choise(vector<float> &a,int len){
+    float sum=std::accumulate(a.begin(),a.end(),0.0);
+    uniform_real_distribution<float> value{0.0,sum};
+    float fchoice{value(generator)};
+    float total=0;
     for(int i=0;i<len;++i){
         total+=a[i];
         if (fchoice<total){

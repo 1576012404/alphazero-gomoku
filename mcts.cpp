@@ -14,7 +14,7 @@ TreeNode::TreeNode()
           p_sa(0),
           q_sa(0) {}
 
-TreeNode::TreeNode(TreeNode *parent, double p_sa, unsigned int action_size)
+TreeNode::TreeNode(TreeNode *parent, float p_sa, unsigned int action_size)
         : parent(parent),
           children(action_size, nullptr),
           is_leaf(true),
@@ -55,8 +55,8 @@ TreeNode &TreeNode::operator=(const TreeNode &node) {
     return *this;
 }
 
-unsigned int TreeNode::select(double c_puct, double c_virtual_loss) {
-    double best_value = -DBL_MAX;
+unsigned int TreeNode::select(float c_puct, float c_virtual_loss) {
+    float best_value = -DBL_MAX;
     unsigned int best_move = 0;
     TreeNode *best_node;
 
@@ -67,7 +67,7 @@ unsigned int TreeNode::select(double c_puct, double c_virtual_loss) {
         }
 
         unsigned int sum_n_visited = this->n_visited.load() + 1;
-        double cur_value =
+        float cur_value =
                 children[i]->get_value(c_puct, c_virtual_loss, sum_n_visited);
         if (cur_value > best_value) {
             best_value = cur_value;
@@ -82,7 +82,7 @@ unsigned int TreeNode::select(double c_puct, double c_virtual_loss) {
     return best_move;
 }
 
-void TreeNode::expand(const std::vector<double> &action_priors) {
+void TreeNode::expand(const std::vector<float> &action_priors) {
 
     {
         // get lock
@@ -108,7 +108,7 @@ void TreeNode::expand(const std::vector<double> &action_priors) {
     }
 }
 
-void TreeNode::backup(double value) {
+void TreeNode::backup(float value) {
     // If it is not root, this node's parent should be updated first
     if (this->parent != nullptr) {
         this->parent->backup(-value);
@@ -128,14 +128,14 @@ void TreeNode::backup(double value) {
     }
 }
 
-double TreeNode::get_value(double c_puct, double c_virtual_loss,
+float TreeNode::get_value(float c_puct, float c_virtual_loss,
                            unsigned int sum_n_visited) const {
     // u
     auto n_visited = this->n_visited.load();
-    double u = (c_puct * this->p_sa * sqrt(sum_n_visited) / (1 + n_visited));
+    float u = (c_puct * this->p_sa * sqrt(sum_n_visited) / (1 + n_visited));
 
     // virtual loss
-    double virtual_loss = c_virtual_loss * this->virtual_loss.load();
+    float virtual_loss = c_virtual_loss * this->virtual_loss.load();
     // int n_visited_with_loss = n_visited - virtual_loss;
 
     if (n_visited <= 0) {
@@ -146,8 +146,8 @@ double TreeNode::get_value(double c_puct, double c_virtual_loss,
 }
 
 // MCTS
-MCTS::MCTS(shared_ptr<NeuralNetwork> neural_network, unsigned int thread_num, double c_puct,
-           unsigned int num_mcts_sims, double c_virtual_loss,
+MCTS::MCTS(shared_ptr<NeuralNetwork> neural_network, unsigned int thread_num, float c_puct,
+           unsigned int num_mcts_sims, float c_virtual_loss,
            unsigned int action_size)
         : neural_network(neural_network),
           thread_pool(new ThreadPool(thread_num)),
@@ -189,7 +189,7 @@ void MCTS::tree_deleter(TreeNode *t) {
     delete t;
 }
 
-std::vector<double> MCTS::get_action_probs(shared_ptr<Gomoku> gomoku, double temp) {
+std::vector<float> MCTS::get_action_probs(shared_ptr<Gomoku> gomoku, float temp) {
     // submit simulate tasks to thread_pool
     std::vector<std::future<void>> futures;
 
@@ -209,7 +209,7 @@ std::vector<double> MCTS::get_action_probs(shared_ptr<Gomoku> gomoku, double tem
     }
 
     // calculate probs
-    std::vector<double> action_probs(gomoku->get_action_size(), 0);
+    std::vector<float> action_probs(gomoku->get_action_size(), 0);
     const auto &children = this->root->children;
 
 
@@ -239,7 +239,7 @@ std::vector<double> MCTS::get_action_probs(shared_ptr<Gomoku> gomoku, double tem
 
 
         // explore
-        double sum = 0;
+        float sum = 0;
         for (unsigned int i = 0; i < children.size(); i++) {
             if (children[i] && children[i]->n_visited.load() > 0) {
                 action_probs[i] = pow(children[i]->n_visited.load(), 1 / temp);
@@ -251,9 +251,12 @@ std::vector<double> MCTS::get_action_probs(shared_ptr<Gomoku> gomoku, double tem
 
 
         std::for_each(action_probs.begin(), action_probs.end(),
-                      [sum](double &x) { x /= sum; });
+                      [sum](float &x) { x /= sum; });
 
-//        for(auto i:action_probs){cout<<i<<"\t";}
+//        for(auto i:action_probs){
+//            if (i>1000)
+//            cout<<i<<"\t"<<sum<<endl;
+//        }
 //        cout<<endl;
 
         return action_probs;
@@ -277,12 +280,12 @@ void MCTS::simulate(std::shared_ptr<Gomoku> game) {
 
     // get game status
     auto status = game->get_game_status();
-    double value = 0;
+    float value = 0;
 
     // not end
     if (status[0] == 0) {
         // predict action_probs and value by neural network
-        std::vector<double> action_priors(this->action_size, 0);
+        std::vector<float> action_priors(this->action_size, 0);
         auto future = this->neural_network->commit(game.get());
 
         auto result = future.get();
@@ -291,14 +294,14 @@ void MCTS::simulate(std::shared_ptr<Gomoku> game) {
         action_priors = std::move(result[0]);
         value = result[1][0];
 
-//        for(double i:action_priors){
+//        for(float i:action_priors){
 //            std::cout<<i<<std::endl;
 //        }
 
 
         // mask invalid actions
         auto legal_moves = game->get_legal_moves();
-        double sum = 0;
+        float sum = 0;
         for (unsigned int i = 0; i < action_priors.size(); i++) {
             if (legal_moves[i] == 1) {
                 sum += action_priors[i];
@@ -310,7 +313,7 @@ void MCTS::simulate(std::shared_ptr<Gomoku> game) {
         // renormalization
         if (sum > FLT_EPSILON) {
             std::for_each(action_priors.begin(), action_priors.end(),
-                          [sum](double &x) { x /= sum; });
+                          [sum](float &x) { x /= sum; });
         } else {
             // all masked
 
@@ -319,7 +322,7 @@ void MCTS::simulate(std::shared_ptr<Gomoku> game) {
             // got dozens or hundreds of these messages you should pay attention to
             // your NNet and/or training process.
             std::cout << "All valid moves were masked, do workaround." << std::endl;
-                    for(double i:action_priors){
+                    for(float i:action_priors){
             std::cout<<i<<std::endl;
         }
             throw ("All valid moves were masked");

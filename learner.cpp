@@ -6,16 +6,16 @@
 
 
 bool Learner::self_play(int first_color,shared_ptr<MCTS>pMCTS,shared_ptr<Gomoku> pgame,
-                        vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_examples){
+                        vector<std::tuple<torch::Tensor,torch::Tensor,float>> &train_examples){
 
-    vector<tuple<board_type,vector<double>,int,int>>examples ;
+    vector<tuple<board_type,vector<float>,int,int>>examples ;
 
     unsigned int episode_step=0;
     int palyers[]={-1,1};
 
     while(true){
         episode_step+=1;
-        vector<double> model_probs;
+        vector<float> model_probs;
 //        time_t t1,t2;
 //        time(&t1);
 
@@ -35,14 +35,14 @@ bool Learner::self_play(int first_color,shared_ptr<MCTS>pMCTS,shared_ptr<Gomoku>
         auto example=make_tuple(board,model_probs,last_action,cur_player);
         examples.push_back(example);
 
-        vector<double> probs(model_probs);
+        vector<float> probs(model_probs);
         std::vector<int> legal_moves= pgame->get_legal_moves();
-        vector<double> ones(legal_moves.size(),1);
-        vector<double> noise(legal_moves.size());
+        vector<float> ones(legal_moves.size(),1);
+        vector<float> noise(legal_moves.size());
         dirichlet_random(noise,ones,legal_moves.size());
 
-        std::for_each(probs.begin(),probs.end(),[](double &val){val*=0.9;});
-        std::for_each(noise.begin(),noise.end(),[](double &val){val*=0.1;});
+        std::for_each(probs.begin(),probs.end(),[](float &val){val*=0.9;});
+        std::for_each(noise.begin(),noise.end(),[](float &val){val*=0.1;});
         int j=0;
         for(int i=0;i<probs.size();++i){
             if (legal_moves[i]==1)//need debug
@@ -52,8 +52,8 @@ bool Learner::self_play(int first_color,shared_ptr<MCTS>pMCTS,shared_ptr<Gomoku>
             }
         }
 
-        double sum=std::accumulate(probs.begin(),probs.end(),0.0);
-        std::for_each(probs.begin(),probs.end(),[sum](double &val){val/=sum;});
+        float sum=std::accumulate(probs.begin(),probs.end(),0.0);
+        std::for_each(probs.begin(),probs.end(),[sum](float &val){val/=sum;});
         //choose action
         int action=random_choise(probs,probs.size());
         pgame->execute_move(action);
@@ -68,7 +68,7 @@ bool Learner::self_play(int first_color,shared_ptr<MCTS>pMCTS,shared_ptr<Gomoku>
 
             pMCTS->update_with_move(-1);
             pgame->reset_game();
-            cout<<"episode_step"<<episode_step<<endl;
+//            cout<<"episode_step"<<episode_step<<endl;
             return true;
         }
 
@@ -77,11 +77,11 @@ bool Learner::self_play(int first_color,shared_ptr<MCTS>pMCTS,shared_ptr<Gomoku>
 }
 
 
-bool Learner::convert_to_torch(int winner,vector<tuple<board_type,vector<double>,int,int>> &examples,
-                               vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_examples) {
+bool Learner::convert_to_torch(int winner,vector<tuple<board_type,vector<float>,int,int>> &examples,
+                               vector<std::tuple<torch::Tensor,torch::Tensor,float>> &train_examples) {
     for (int i = 0; i < examples.size(); i++) {
         board_type board;
-        vector<double> prob;
+        vector<float> prob;
         int last_move;
         int cur_player;
         std::tie(board, prob, last_move, cur_player) = examples[i];
@@ -105,8 +105,23 @@ bool Learner::convert_to_torch(int winner,vector<tuple<board_type,vector<double>
         // torch::Tensor states = torch::cat({state0, state1}, 1);
         torch::Tensor states_torch = torch::cat({state0, state1, state2}, 1);
 
+//        for(auto i:prob){
+//            if (i>1000)
+//                cout<<"err"<<i<<"\t"<<endl;
+//        }
+
+
         torch::Tensor prob_torch = torch::from_blob(prob.data(), {1, n, n}, torch::dtype(torch::kFloat32));
-        double value = cur_player * winner;
+
+//        auto liu=prob_torch>1000;
+//        auto liu1=torch::sum(liu);
+//        int liu2 = liu1.item<int>();
+//        if (liu2>0){
+//            cout<<"blob err"<<prob_torch<<endl;
+//        }
+
+
+        float value = cur_player * winner;
         for (int k=0;k<4;++k){
             for(int flip=0;flip<2;++flip)
             {
@@ -133,8 +148,8 @@ bool Learner::convert_to_torch(int winner,vector<tuple<board_type,vector<double>
 
 
 bool Learner::contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,bool use_gpu,unsigned int num_mcts_sims,
-                      double c_puct,
-                      double c_virtual_loss,
+                      float c_puct,
+                      float c_virtual_loss,
                       unsigned int thread_num) {//-1 for cur 1 for best
     uniform_int_distribution<int> randint(0,1);
     int rand_out=randint(generator);
@@ -164,7 +179,7 @@ bool Learner::contest(shared_ptr<NeuralNetwork> cur_network,int n,int n_in_row,b
             choiceMCTS = best_MCTS;
 
 
-        vector<double> probs = choiceMCTS->get_action_probs(pgame, 1);
+        vector<float> probs = choiceMCTS->get_action_probs(pgame, 1);
         auto max_move = std::max_element(probs.begin(), probs.end());
         int best_move = std::distance(probs.begin(), max_move);
         pgame->execute_move(best_move);

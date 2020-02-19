@@ -143,9 +143,9 @@ void NeuralNetwork::infer() {
         torch::Tensor p = p_batch[i];
         torch::Tensor v = v_batch[i];
 
-        std::vector<double> prob(static_cast<float*>(p.data_ptr()),
+        std::vector<float> prob(static_cast<float*>(p.data_ptr()),
                                  static_cast<float*>(p.data_ptr()) + p.size(0));
-        std::vector<double> value{v.item<float>()};
+        std::vector<float> value{v.item<float>()};
         return_type temp{std::move(prob), std::move(value)};
 
         promises[i].set_value(std::move(temp));
@@ -168,7 +168,7 @@ bool NeuralNetwork::load(){
 
 }
 
-void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>> &train_data,int batch_size){
+void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,float>> &train_data,int batch_size){
     static thread_local std::mt19937 generator;
     std::shuffle(std::begin(train_data),std::end(train_data),generator);
     torch::Tensor temp1,temp2,temp3,temp4;
@@ -177,12 +177,12 @@ void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>
 //        cout<<"batch_index:"<<i<<",batch_size"<<batch_size<<endl;
         vector<torch::Tensor> boards;
         vector<torch::Tensor> probs;
-        vector<double> values;
+        vector<float> values;
         for(int j=0;j<batch_size;++j){
             int index=batch_size*i+j;
             torch::Tensor board;
             torch::Tensor prob;
-            double value;
+            float value;
             std::tie(board,prob,value)=train_data[index];
 
             boards.push_back(std::move(board));
@@ -197,7 +197,7 @@ void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>
         }
         torch::Tensor boards_tor=torch::cat(boards,0).to(device);
         torch::Tensor probs_tor=torch::cat(probs,0).to(device);
-        torch::Tensor values_tor=torch::from_blob(values.data(),{batch_size,1}).to(device);
+        torch::Tensor values_tor=torch::from_blob(values.data(),{batch_size,1},torch::dtype(torch::kFloat32)).to(device);
         //forward
 
         this->opt.zero_grad();
@@ -212,12 +212,13 @@ void NeuralNetwork:: train(vector<std::tuple<torch::Tensor,torch::Tensor,double>
         toal_loss.backward();
         temp1=value_loss;
         temp2=policy_loss;
-        temp3=probs_tor;
-        temp4=log_ps;
+//        temp3=probs_tor;
+//        temp4=log_ps;
 
         this->opt.step();
     }
-    cout<<"value_loss:"<<temp1<<"policy_loss:"<<temp2<<"prob:"<<temp3<<"log_p:"<<temp4<<endl;
+    cout<<"value_loss:"<<temp1<<"policy_loss:"<<temp2<<endl;
+
 
 
 

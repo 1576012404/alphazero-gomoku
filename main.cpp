@@ -12,14 +12,14 @@ int train(){
     int iter_num=5;
     int train_batch_size=128;
     unsigned int sim_batch_size=16;
-    int contest_num=2;
+    int contest_num=17;
     int epoch_num=100000;
-    int check_interval=2;
+    int check_interval=4;
     int n=10;
     int n_in_row=4;
-    unsigned int num_mcts_sims=50;
-    double c_puct=1;
-    double c_virtual_loss=1;
+    unsigned int num_mcts_sims=1000;
+    float c_puct=5;
+    float c_virtual_loss=3;
     unsigned int thread_num=8;
     bool use_gpu=torch::cuda::is_available();
     //network param
@@ -34,15 +34,15 @@ int train(){
     for(int epoch=1;epoch<epoch_num;epoch++){
         cout<<"epoch:"<<epoch<<endl;
 
-        vector<std::tuple<torch::Tensor,torch::Tensor,double>> train_examples;
+        vector<std::tuple<torch::Tensor,torch::Tensor,float>> train_examples;
         for(int i=0;i<=iter_num;++i){
-            cout<<"iter_num:"<<i<<endl;
+//            cout<<"iter_num:"<<i<<endl;
             learner.self_play(1,pMCTS,pgame,train_examples);
         }
 
-        cout<<"start train:"<<epoch<<endl;
+//        cout<<"start train:"<<epoch<<endl;
         neural_network->train(train_examples,train_batch_size);
-        cout<<"end train:"<<epoch<<endl;
+//        cout<<"end train:"<<epoch<<endl;
 
         if (epoch==1){
             neural_network->save();
@@ -99,7 +99,7 @@ int eval(int first_color=1){//human:1
         cur_player = players[cur_index];
         int next_move;
         if (cur_player == -1){
-            vector<double> probs = best_MCTS->get_action_probs(pgame, 1);
+            vector<float> probs = best_MCTS->get_action_probs(pgame, 1);
             auto max_move = std::max_element(probs.begin(), probs.end());
             next_move = std::distance(probs.begin(), max_move);
         }
@@ -148,9 +148,9 @@ int main() {
 //    shared_ptr<NeuralNetwork> neural_network =make_shared<NeuralNetwork> (false,4);
 //    NeuralNetwork *raw_neural_network=neural_network.get();
 //    shared_ptr<MCTS> pMCTS=make_shared<MCTS>(raw_neural_network, 8, 1,50, 1,10*10);
-//    vector<double> probs=pMCTS->get_action_probs(raw_pgame,1);
+//    vector<float> probs=pMCTS->get_action_probs(raw_pgame,1);
 //    cout<<"print probs"<<endl;
-//    for (double i:probs) cout<<i<<endl;
+//    for (float i:probs) cout<<i<<endl;
 
 
     return 0;
